@@ -1,0 +1,748 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Burger Arcade Menu</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bangers&family=Inter:wght@400;600;700&family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b0d10; --panel:#111316; --panel2:#181b20; --line:#2a2f36;
+  --yellow:#ffcc1a; --yellow-dim:#6b5a12; --cyan:#22c3e6; --teal:#0f6f88; --teal2:#1596b8;
+  --text:#f5f6f7; --muted:#a9b1ba; --red:#ff3b3b;
+  --display:'Bangers',system-ui,sans-serif; --pixel:'Press Start 2P',monospace; --body:'Inter',system-ui,sans-serif;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:var(--body);color:var(--text);background:var(--teal);
+  background-image:linear-gradient(rgba(255,255,255,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.07) 1px,transparent 1px);
+  background-size:26px 26px;min-height:100vh}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.wrap{max-width:560px;margin:0 auto}
+
+/* ---------- header ---------- */
+.top{background:var(--bg);border-bottom:2px solid #000}
+.top .wrap{display:flex;align-items:center;gap:14px;padding:14px 16px}
+.logo{flex:none;width:64px;height:52px;border:2px solid var(--yellow);border-radius:8px;background:var(--cyan);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:.85;font-family:var(--display);
+  color:#111;font-size:15px;letter-spacing:.5px;box-shadow:0 0 0 2px #000 inset,0 0 14px rgba(34,195,230,.45);text-align:center}
+.logo b{color:var(--yellow);-webkit-text-stroke:1px #111;font-size:12px}
+.tagline{font-family:var(--display);font-size:24px;letter-spacing:1px;margin:0}
+
+/* ---------- arcade strip ---------- */
+.arcade{background:var(--teal2);border-top:3px solid var(--yellow);border-bottom:3px solid var(--yellow);position:relative;overflow:hidden}
+.arcade .wrap{padding:8px 12px 10px}
+.hud{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.badge{font-family:var(--pixel);font-size:8px;line-height:1.5;color:var(--yellow);background:#111;border:2px solid var(--yellow);border-radius:4px;padding:4px 6px}
+.scorebox{display:flex;align-items:center;gap:6px}
+.score{background:#111;border:2px solid var(--yellow);border-radius:4px;padding:3px 6px;font-family:var(--pixel);color:var(--yellow);font-size:7px;line-height:1.6}
+.score .num{display:block;font-size:11px;letter-spacing:1px}
+.mute{width:30px;height:30px;border:2px solid #444;background:#111;border-radius:6px;display:grid;place-items:center}
+.mute svg{width:16px;height:16px}
+.lane{position:relative;overflow:hidden;height:56px;margin-top:8px;border-top:3px solid var(--yellow);border-bottom:3px solid var(--yellow)}
+.lane::before,.lane::after{content:"";position:absolute;left:0;right:0;height:3px;background:repeating-linear-gradient(90deg,var(--yellow) 0 34px,transparent 34px 52px)}
+.lane::before{top:6px}.lane::after{bottom:6px}
+.lane .track{position:absolute;inset:0 16px}
+.dot{position:absolute;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;background:#ffe9a8;border-radius:1px;transition:transform .15s,opacity .15s}
+.dot.big{width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;animation:blink .6s steps(2) infinite}
+.dot.eaten{transform:scale(0);opacity:0}
+@keyframes blink{50%{opacity:.25}}
+.pac{position:absolute;top:50%;left:0;width:28px;height:28px;margin-top:-14px;transform:translateX(-50%);z-index:2}
+.pac::before,.pac::after{content:"";position:absolute;left:0;width:28px;height:14px;background:var(--yellow)}
+.pac::before{top:0;border-radius:14px 14px 0 0;transform-origin:50% 100%;animation:jawT .25s infinite alternate}
+.pac::after{top:14px;border-radius:0 0 14px 14px;transform-origin:50% 0;animation:jawB .25s infinite alternate}
+@keyframes jawT{to{transform:rotate(-35deg)}}@keyframes jawB{to{transform:rotate(35deg)}}
+.ghost{position:absolute;top:50%;left:-60px;width:26px;height:28px;margin-top:-14px;transform:translateX(-50%);z-index:1;transition:left 1.2s ease}
+.ghost svg{width:100%;height:100%;animation:float .5s ease-in-out infinite alternate}
+@keyframes float{to{transform:translateY(-3px)}}
+.ready{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);font-family:var(--pixel);font-size:10px;color:var(--yellow);
+  background:#111;border:2px solid var(--yellow);padding:4px 8px;border-radius:3px;z-index:3;transition:opacity .3s;white-space:nowrap}
+.ready.hide{opacity:0;pointer-events:none}
+
+/* ---------- tabs ---------- */
+.tabs{position:sticky;top:0;z-index:20;background:rgba(11,13,16,.96);backdrop-filter:blur(6px);border-bottom:2px solid #000}
+.tabs .wrap{display:flex;gap:8px;overflow-x:auto;padding:10px 16px;scrollbar-width:none}
+.tabs .wrap::-webkit-scrollbar{display:none}
+.tab{flex:none;font-family:var(--display);font-size:18px;letter-spacing:.8px;color:var(--yellow);background:#14171b;border:2px solid #2d3238;border-radius:999px;padding:7px 15px;transition:background .15s,color .15s,border-color .15s}
+.tab.on{background:var(--yellow);color:#111;border-color:var(--yellow);box-shadow:0 0 14px rgba(255,204,26,.35)}
+
+/* ---------- menu ---------- */
+.layout{max-width:560px;margin:0 auto;padding:6px 16px 120px}
+.side{display:none}
+.cat{padding-top:18px;scroll-margin-top:70px}
+.cat-h{display:flex;align-items:baseline;gap:10px;margin:4px 2px 12px}
+.lvl{font-family:var(--pixel);font-size:9px;color:var(--yellow)}
+.cat-h h2{font-family:var(--display);font-size:30px;letter-spacing:1px;margin:0;font-weight:400}
+.cnt{font-family:var(--pixel);font-size:9px;color:#cfe9f0;opacity:.7}
+.card{display:grid;grid-template-columns:120px 1fr;gap:12px;background:var(--panel);border:2px solid rgba(255,204,26,.55);border-radius:16px;padding:10px;margin-bottom:12px;
+  box-shadow:0 6px 0 rgba(0,0,0,.35)}
+.card.conf{cursor:pointer}
+.art{border-radius:12px;background:radial-gradient(circle at 50% 40%,#2bc4e3,#0f7f9c 75%);border:2px solid #39c6e4;aspect-ratio:1/1;display:grid;place-items:center;overflow:hidden}
+.art svg{width:100%;height:100%}
+.body{min-width:0;display:flex;flex-direction:column}
+.body h3{font-family:var(--display);font-weight:400;font-size:23px;letter-spacing:.6px;margin:2px 0 4px;line-height:1}
+.tag{align-self:flex-start;font-family:var(--pixel);font-size:6.5px;line-height:1.4;color:var(--yellow);border:1.5px solid var(--yellow);border-radius:999px;padding:3px 7px;margin-bottom:6px}
+.tag.new{background:var(--red);border-color:var(--red);color:#fff}
+.body p{margin:0;font-size:12.5px;line-height:1.45;color:var(--muted)}
+.row{margin-top:auto;padding-top:10px;display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
+.price{font-family:var(--pixel);font-size:11px;color:var(--yellow);white-space:nowrap}
+.ctl{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.opt-l{font-family:var(--pixel);font-size:6px;color:var(--muted)}
+.plus{width:40px;height:40px;border-radius:50%;background:var(--yellow);color:#111;font-size:26px;font-weight:700;line-height:1;display:grid;place-items:center;
+  box-shadow:0 3px 0 #a07d00,0 0 12px rgba(255,204,26,.4);transition:transform .1s}
+.plus:active{transform:translateY(2px);box-shadow:0 1px 0 #a07d00}
+.stepper{display:flex;align-items:center;gap:8px}
+.stepper button{width:34px;height:34px;border-radius:50%;border:2px solid #555;font-size:20px;line-height:1;display:grid;place-items:center}
+.stepper button:last-child{background:var(--yellow);border-color:var(--yellow);color:#111;font-weight:700}
+.stepper span{font-family:var(--pixel);font-size:11px;min-width:16px;text-align:center}
+
+footer{text-align:center;padding:10px 16px 140px;color:#dff3f8}
+footer a{color:var(--yellow);text-decoration:none;font-family:var(--display);font-size:20px;letter-spacing:1px;display:inline-block;margin:4px 10px}
+footer small{display:block;font-family:var(--pixel);font-size:7px;opacity:.7;margin-top:12px}
+
+/* ---------- order bar ---------- */
+.orderbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);border-top:3px solid var(--yellow);transform:translateY(110%);transition:transform .3s cubic-bezier(.2,.9,.3,1.2);padding-bottom:env(safe-area-inset-bottom)}
+.orderbar.show{transform:none}
+.orderbar .wrap{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;gap:12px}
+.ob-l{font-family:var(--pixel);font-size:8px;color:var(--yellow);line-height:1.9}
+.ob-l b{display:block;color:var(--text);font-size:11px;font-weight:400}
+.btn{font-family:var(--display);font-size:20px;letter-spacing:1px;background:var(--yellow);color:#111;border-radius:999px;padding:11px 22px;display:inline-flex;align-items:center;gap:8px;
+  box-shadow:0 4px 0 #a07d00;transition:transform .1s}
+.btn:active{transform:translateY(2px);box-shadow:0 2px 0 #a07d00}
+.btn[disabled]{background:var(--yellow-dim);color:#1b1b1b;box-shadow:none;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--muted);box-shadow:none;border:2px solid #333;font-size:16px;padding:9px 16px}
+.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.08)}}
+
+/* ---------- sheets ---------- */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.65);display:none;align-items:flex-end;justify-content:center}
+.overlay.open{display:flex}
+.sheet{width:100%;max-width:560px;height:94vh;height:94dvh;background:var(--bg);border:2px solid var(--yellow);border-bottom:0;border-radius:20px 20px 0 0;display:flex;flex-direction:column;animation:up .3s cubic-bezier(.2,.9,.3,1)}
+@keyframes up{from{transform:translateY(40px);opacity:.4}}
+.sh-h{display:flex;align-items:flex-start;gap:12px;padding:16px 16px 8px}
+.sh-h h2{font-family:var(--display);font-weight:400;font-size:28px;letter-spacing:1px;margin:0;flex:1;line-height:1}
+.sh-h .sub{display:block;font-family:var(--pixel);font-size:10px;color:var(--yellow);margin-top:8px}
+.x{width:36px;height:36px;border-radius:50%;border:2px solid #333;font-size:18px;display:grid;place-items:center;flex:none}
+.sh-b{flex:1;overflow-y:auto;padding:4px 16px 16px}
+.sh-f{display:flex;align-items:center;gap:12px;padding:12px 16px calc(12px + env(safe-area-inset-bottom));border-top:2px solid #222}
+.sh-f .btn{flex:1;min-width:0;justify-content:center;white-space:nowrap}
+.clear{display:block;margin:18px auto 0;font-family:var(--pixel);font-size:8px;color:var(--red);padding:8px}
+.preview{height:210px;border-radius:14px;background:radial-gradient(circle at 50% 45%,#2bc4e3,#0f7f9c 75%);border:2px solid #39c6e4;margin-bottom:14px;display:grid;place-items:center;overflow:hidden}
+.preview svg{height:100%;width:100%}
+.ly.drop{animation:drop .45s cubic-bezier(.3,1.5,.5,1)}
+@keyframes drop{from{transform:translateY(-40px);opacity:0}}
+.grp{margin:16px 0}
+.grp-h{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.grp-h b{font-family:var(--pixel);font-size:9px;color:var(--yellow);font-weight:400}
+.grp-h small{font-size:11px;color:var(--muted)}
+.grp-h .req{color:var(--red)}
+.grp-h .right{margin-left:auto;font-family:var(--pixel);font-size:8px;color:var(--text)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{position:relative;font-family:var(--display);font-size:16px;letter-spacing:.6px;border:2px solid #3a3f46;border-radius:999px;padding:7px 14px;background:#121417;transition:all .12s}
+.chip em{font-style:normal;font-family:var(--pixel);font-size:7px;color:var(--yellow);margin-left:4px}
+.chip.on{background:var(--yellow);border-color:var(--yellow);color:#111;box-shadow:0 0 12px rgba(255,204,26,.35)}
+.chip.on em{color:#111}
+.chip.struck{border-color:var(--red);color:var(--red);text-decoration:line-through;text-decoration-thickness:2px}
+.chip.struck::after{content:"✕";position:absolute;top:-7px;right:-5px;width:17px;height:17px;border-radius:50%;background:var(--red);color:#fff;font:700 10px/17px var(--body);text-align:center;text-decoration:none}
+.chip.full{opacity:.4}
+.info{display:flex;gap:12px;align-items:center;margin-bottom:6px}
+.info .mini{width:56px;height:56px;flex:none;border-radius:10px;background:#0f7f9c;border:2px solid #39c6e4;overflow:hidden}
+.info .mini svg{width:100%;height:100%}
+.desc{color:var(--muted);font-size:13px;line-height:1.5;margin:6px 0 0}
+.motto{font-family:var(--pixel);font-size:8px;color:var(--yellow);margin:0 0 6px}
+
+/* cart */
+.line{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:12px 0;border-bottom:1px dashed #2c3036}
+.line h4{margin:0;font-family:var(--display);font-weight:400;font-size:20px;letter-spacing:.5px}
+.line ul{margin:4px 0 0;padding:0;list-style:none;font-size:12px;color:var(--muted);line-height:1.5}
+.line .lp{font-family:var(--pixel);font-size:10px;color:var(--yellow);text-align:right}
+.line .stepper{grid-column:2;justify-content:flex-end}
+.field{display:block;margin:14px 0 0}
+.field span{display:block;font-family:var(--pixel);font-size:8px;color:var(--yellow);margin-bottom:6px}
+.field input,.field textarea{width:100%;background:#121417;border:2px solid #2d3238;border-radius:10px;color:var(--text);font:14px var(--body);padding:10px 12px;outline:none}
+.field input:focus,.field textarea:focus{border-color:var(--yellow)}
+.total{display:flex;justify-content:space-between;align-items:center;margin-top:18px;font-family:var(--pixel);font-size:12px;color:var(--yellow)}
+.empty{text-align:center;color:var(--muted);padding:40px 0;font-family:var(--pixel);font-size:9px;line-height:2}
+
+.toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);opacity:0;z-index:60;background:#111;border:2px solid var(--yellow);color:var(--yellow);font-family:var(--pixel);font-size:9px;padding:10px 14px;border-radius:8px;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- Pac-Man delivery ---------- */
+.fly-food{position:fixed;z-index:69;pointer-events:none;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#2bc4e3,#0f7f9c 75%);border:2px solid #39c6e4}
+.fly-food svg{width:100%;height:100%}
+.fly-pac{position:fixed;left:0;top:0;width:64px;height:64px;z-index:70;pointer-events:none;will-change:transform}
+.pbody{width:64px;height:64px;filter:drop-shadow(0 0 10px rgba(255,204,26,.7)) drop-shadow(0 4px 0 rgba(0,0,0,.35))}
+.pman{position:relative;width:64px;height:64px}
+.pman::before,.pman::after{content:"";position:absolute;left:0;width:64px;height:32px;background:var(--yellow)}
+.pman::before{top:0;border-radius:32px 32px 0 0;transform-origin:50% 100%;animation:jawT .16s infinite alternate}
+.pman::after{top:32px;border-radius:0 0 32px 32px;transform-origin:50% 0;animation:jawB .16s infinite alternate}
+.carry{position:absolute;left:50%;top:-40px;width:46px;height:46px;border-radius:10px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#2bc4e3,#0f7f9c 75%);border:2px solid var(--yellow);
+  transform:translateX(-50%) scale(0);transition:transform .25s cubic-bezier(.3,1.6,.5,1)}
+.carry.on{transform:translateX(-50%) scale(1)}
+.carry svg{width:100%;height:100%}
+.pac-idle{width:34px;height:34px;margin:0 auto 18px;border-radius:50%;background:conic-gradient(var(--yellow) 0 60deg,transparent 60deg 120deg,var(--yellow) 120deg)}
+
+@media (min-width:600px){.overlay{align-items:center}.sheet{height:88vh;border-radius:20px;border-bottom:2px solid var(--yellow)}}
+
+/* ---------- tablet ---------- */
+@media (min-width:720px){
+  .wrap,.layout{max-width:1040px}
+  .cat-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+  .card{margin:0}
+  .tagline{font-size:30px}
+  .lane{height:64px}
+}
+/* ---------- desktop / web ---------- */
+@media (min-width:1100px){
+  .wrap,.layout{max-width:1360px}
+  .top .wrap,.arcade .wrap,.tabs .wrap{padding-left:24px;padding-right:24px}
+  .layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:28px;align-items:start;padding:6px 24px 40px}
+  .side{display:flex;flex-direction:column;position:sticky;top:78px;margin-top:22px;height:calc(100vh - 100px);background:var(--bg);border:2px solid var(--yellow);border-radius:18px;overflow:hidden;box-shadow:0 8px 0 rgba(0,0,0,.35)}
+  .side .sh-f:empty{display:none}
+  .side.bump{animation:bumpSide .35s}
+  .orderbar{display:none}
+  .toast{bottom:32px}
+  footer{padding-bottom:40px}
+  .card{grid-template-columns:140px 1fr}
+  .logo{width:78px;height:62px;font-size:18px}
+  .tab{font-size:20px;padding:8px 20px}
+  .tab:hover{border-color:var(--yellow)}
+  .card:hover{border-color:var(--yellow);transform:translateY(-2px)}
+  .card{transition:transform .15s,border-color .15s}
+  .sheet.wide{max-width:980px}
+  .sheet.wide .sh-b{display:grid;grid-template-columns:400px 1fr;gap:28px;align-items:start}
+  .sheet.wide .preview{position:sticky;top:0;height:400px;margin:0}
+  .sheet.wide .opts .grp:first-child{margin-top:0}
+}
+@media (min-width:1500px){.cat-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@keyframes bumpSide{40%{transform:scale(1.03);border-color:#fff}}
+@media (max-width:380px){.card{grid-template-columns:96px 1fr}.body h3{font-size:20px}.tagline{font-size:20px}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header class="top"><div class="wrap">
+  <div class="logo" id="logo"></div>
+  <h1 class="tagline" id="tagline"></h1>
+</div></header>
+
+<section class="arcade" aria-label="Order game"><div class="wrap">
+  <div class="hud">
+    <div class="badge">YOU CHOOSE<br>IT EATS</div>
+    <div class="scorebox">
+      <div class="score">SCORE <span id="mult">×0</span><span class="num" id="score">000000</span></div>
+      <button class="mute" id="mute" aria-label="Toggle sound"></button>
+    </div>
+  </div>
+  <div class="lane"><div class="track" id="lane">
+    <div class="ghost" id="ghost"><svg viewBox="0 0 26 28"><path d="M1 13a12 12 0 0 1 24 0v15l-4-3-4 3-4-3-4 3-4-3-4 3z" fill="#ff4fd8"/><circle cx="8.5" cy="12" r="3.5" fill="#fff"/><circle cx="17.5" cy="12" r="3.5" fill="#fff"/><circle cx="9.5" cy="12.5" r="1.7" fill="#1a3bff"/><circle cx="18.5" cy="12.5" r="1.7" fill="#1a3bff"/></svg></div>
+    <div class="pac" id="pac"></div>
+  </div><div class="ready" id="ready">READY!</div></div>
+</div></section>
+
+<nav class="tabs" aria-label="Menu categories"><div class="wrap" id="tabs"></div></nav>
+
+<div class="layout">
+  <main id="menu"></main>
+  <aside class="side" id="side" aria-label="My order"></aside>
+</div>
+
+<footer id="footer"></footer>
+
+<div class="orderbar" id="orderbar"><div class="wrap">
+  <div class="ob-l">MY ORDER<b id="obInfo">×0 · $0.00</b></div>
+  <button class="btn" id="openCart">➤ SEND ORDER</button>
+</div></div>
+
+<div class="overlay" id="itemSheet" role="dialog" aria-modal="true"><div class="sheet" id="itemBox"></div></div>
+<div class="overlay" id="cartSheet" role="dialog" aria-modal="true"><div class="sheet" id="cartBox"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   1) RESTAURANT SETTINGS — edit these
+   ===================================================================== */
+const CONFIG = {
+  logoTop: "BURGER", logoBottom: "ARCADE",
+  name: "Burger Arcade",
+  tagline: "YOUR BURGER, YOUR RULES.",
+  currency: "$",
+  whatsapp: "96100000000",          // order number, international format, digits only
+  instagram: "yourrestaurant",
+  phone: "+961 00 000 000",
+  mapsUrl: "https://maps.google.com/?q=Beirut"
+};
+
+/* =====================================================================
+   2) MENU — edit items here
+   type: "simple"  -> + / − buttons on the card
+         "builder" -> build-your-burger with live preview
+         "mystery" -> strike ingredients you don't want
+         "options" -> bundle with choices
+   art:  picture drawn for the card (burger / fries / drink / wings / rings / sticks / sauce / box / combo)
+   ===================================================================== */
+const DRINKS = [{name:"Pepsi"},{name:"7Up"},{name:"Mirinda"},{name:"Water"},{name:"Iced Tea",price:1}];
+const MENU = [
+ {id:"bundles", name:"Bundles", items:[
+  {id:"byb", type:"builder", name:"Build Your Burger", tag:"YOUR BURGER. YOUR RULES", price:0, priceLabel:"FROM $7.00",
+   desc:"Your burger, your rules. Pick a patty and a bun, then stack it your way.",
+   art:{t:"burger",bun:"classic",layers:[]},
+   groups:[
+    {id:"patty",label:"PATTY",min:1,max:1,abs:true,choices:[
+      {name:"Angus Beef 180g",price:8,layers:["beef"]},
+      {name:"Double Angus 360g",price:12,layers:["beef","beef"]},
+      {name:"Fried Chicken",price:7,layers:["chicken"]}]},
+    {id:"bun",label:"BUN",min:1,max:1,choices:[
+      {name:"Classic Bun",bun:"classic"},{name:"Black Bun",bun:"black"},{name:"Brioche Bun",price:.5,bun:"brioche"}]},
+    {id:"cheese",label:"CHEESE",choices:[
+      {name:"Cheddar Slice",price:1,layers:["cheddar"]},{name:"Swiss Slice",price:1,layers:["swiss"]},{name:"Mozzarella Patty",price:1.5,layers:["mozz"]}]},
+    {id:"toppings",label:"TOPPINGS",choices:[
+      {name:"Lettuce",layers:["lettuce"]},{name:"Tomato",layers:["tomato"]},{name:"Dill Pickles",layers:["pickles"]},
+      {name:"Wild Rocca",layers:["rocca"]},{name:"Jalapeño",layers:["jalapeno"]},{name:"Mushroom & Onion",layers:["mushroom"]},
+      {name:"Onion Rings",price:1,layers:["rings"]},{name:"Blue Takis",price:1,layers:["takis"]}]},
+    {id:"extras",label:"EXTRAS",choices:[
+      {name:"Bacon",price:2,layers:["bacon"]},{name:"Fried Egg",price:1.5,layers:["egg"]},{name:"Extra Patty",price:4,layers:["beef"]}]},
+    {id:"sauce",label:"SAUCE",max:2,choices:[
+      {name:"Secret Sauce"},{name:"BBQ"},{name:"Garlic"},{name:"Spicy Mayo"},{name:"Truffle Mayo",price:.5}]}
+   ]},
+  {id:"mystery", type:"mystery", name:"Mystery Burger", tag:"WE CHOOSE. YOU EAT.", price:12,
+   desc:"Feeling adventurous? We surprise you with a randomly selected burger from our menu.",
+   art:{t:"box"}, maxStrikes:5,
+   strikes:["Bacon","Turkey","Chicken","Pickles","Onion Rings","Mushroom & Onion","Lettuce","Tomato","Rocca","Jalapeño","Blue Takis","Truffle","Mozzarella Patty","Black Bun","Spicy"]},
+  {id:"duo", type:"options", name:"Arcade Bundle for 2", price:20,
+   desc:"2 beef burgers, 2 fries, 8 pcs wings, 2 dips, 2 drinks",
+   art:{t:"combo"},
+   groups:[
+    {id:"b1",label:"BURGER 1",min:1,max:1,choices:[{name:"Classic Beef"},{name:"Crispy Chicken"}]},
+    {id:"b2",label:"BURGER 2",min:1,max:1,choices:[{name:"Classic Beef"},{name:"Crispy Chicken"}]},
+    {id:"d1",label:"DRINK 1",min:1,max:1,choices:DRINKS},
+    {id:"d2",label:"DRINK 2",min:1,max:1,choices:DRINKS}]},
+  {id:"gathering", type:"options", name:"The Gathering Bundle", price:40,
+   desc:"4 classic beef or chicken burgers, 4 fries, 4 pcs wings, 4 mozzarella sticks, 4 soft drinks, 4 dips",
+   art:{t:"combo"},
+   groups:[
+    {id:"burgers",label:"BURGERS",min:1,max:1,choices:[{name:"4 Beef"},{name:"4 Chicken"},{name:"2 Beef + 2 Chicken"}]},
+    {id:"drinks",label:"DRINKS",min:1,max:1,choices:[{name:"4 Pepsi"},{name:"4 7Up"},{name:"Mixed"}]}]},
+  {id:"dragonb", type:"simple", name:"Blue Dragon Bundle", tag:"CHEF'S FAVOURITE", price:25,
+   desc:"2 blue dragon burgers, 2 fries, 2 soft drinks, 6 pcs onion rings, 2 secret sauce",
+   art:{t:"burger",bun:"black",layers:["beef","cheddar","takis","jalapeno"]}}
+ ]},
+ {id:"new", name:"New Items", items:[
+  {id:"truffle", type:"simple", name:"Truffle Boss", tag:"NEW", isNew:true, price:11,
+   desc:"Angus beef, swiss cheese, truffle mayo, mushroom & onion, wild rocca, brioche bun",
+   art:{t:"burger",bun:"brioche",layers:["beef","swiss","mushroom","rocca"]}},
+  {id:"mozzb", type:"simple", name:"Melt Down", tag:"NEW", isNew:true, price:9,
+   desc:"Crispy mozzarella patty on beef, tomato, lettuce, spicy mayo",
+   art:{t:"burger",bun:"classic",layers:["beef","mozz","tomato","lettuce"]}},
+  {id:"takisfries", type:"simple", name:"Blue Takis Fries", tag:"NEW", isNew:true, price:5,
+   desc:"Crispy fries loaded with cheese sauce and crushed blue takis",
+   art:{t:"fries"}}
+ ]},
+ {id:"burger", name:"Burger", items:[
+  {id:"classic", type:"simple", name:"Classic Beef", price:8,
+   desc:"Angus beef, cheddar, lettuce, tomato, dill pickles, secret sauce",
+   art:{t:"burger",bun:"classic",layers:["beef","cheddar","tomato","pickles","lettuce"]}},
+  {id:"dragon", type:"simple", name:"Blue Dragon", tag:"CHEF'S FAVOURITE", price:10,
+   desc:"Black bun, angus beef, cheddar, jalapeño, onion rings, blue takis, spicy mayo",
+   art:{t:"burger",bun:"black",layers:["beef","cheddar","jalapeno","rings","takis"]}},
+  {id:"double", type:"simple", name:"Double Trouble", price:12,
+   desc:"Two angus patties, double cheddar, bacon, caramelized onion, BBQ",
+   art:{t:"burger",bun:"classic",layers:["beef","cheddar","beef","cheddar","bacon"]}},
+  {id:"chicken", type:"simple", name:"Crispy Chicken", price:7,
+   desc:"Fried chicken breast, lettuce, pickles, garlic mayo, brioche bun",
+   art:{t:"burger",bun:"brioche",layers:["chicken","pickles","lettuce"]}},
+  {id:"swiss", type:"simple", name:"Mushroom Swiss", price:9,
+   desc:"Angus beef, swiss cheese, sautéed mushroom & onion, truffle mayo",
+   art:{t:"burger",bun:"classic",layers:["beef","swiss","mushroom"]}}
+ ]},
+ {id:"appetizer", name:"Appetizer", items:[
+  {id:"fries", type:"simple", name:"Classic Fries", price:3, desc:"Golden, crispy, salted", art:{t:"fries"}},
+  {id:"wings", type:"simple", name:"Wings 8 pcs", price:7, desc:"Buffalo or BBQ, with ranch dip", art:{t:"wings"}},
+  {id:"orings", type:"simple", name:"Onion Rings 6 pcs", price:4, desc:"Beer-battered onion rings", art:{t:"rings"}},
+  {id:"msticks", type:"simple", name:"Mozzarella Sticks", price:5, desc:"5 pcs with marinara dip", art:{t:"sticks"}}
+ ]},
+ {id:"sauce", name:"Sauce", items:[
+  {id:"s-secret", type:"simple", name:"Secret Sauce", price:1, desc:"The house favourite", art:{t:"sauce",c:"#ff8a3d"}},
+  {id:"s-bbq", type:"simple", name:"BBQ", price:1, desc:"Smoky & sweet", art:{t:"sauce",c:"#6b2410"}},
+  {id:"s-garlic", type:"simple", name:"Garlic", price:1, desc:"Creamy garlic toum", art:{t:"sauce",c:"#f4efe1"}},
+  {id:"s-spicy", type:"simple", name:"Spicy Mayo", price:1, desc:"With a kick", art:{t:"sauce",c:"#ff5a36"}},
+  {id:"s-truffle", type:"simple", name:"Truffle Mayo", price:1.5, desc:"Black truffle mayonnaise", art:{t:"sauce",c:"#d9c79a"}}
+ ]},
+ {id:"beverage", name:"Beverage", items:[
+  {id:"pepsi", type:"simple", name:"Pepsi", price:1.5, desc:"330 ml can", art:{t:"drink",c:"#1f4fd8"}},
+  {id:"7up", type:"simple", name:"7Up", price:1.5, desc:"330 ml can", art:{t:"drink",c:"#16a34a"}},
+  {id:"water", type:"simple", name:"Water", price:1, desc:"500 ml", art:{t:"drink",c:"#93c5fd"}},
+  {id:"icedtea", type:"simple", name:"Iced Tea", price:2.5, desc:"Peach or lemon", art:{t:"drink",c:"#d97706"}},
+  {id:"shake", type:"simple", name:"Milkshake", price:4, desc:"Vanilla, chocolate or strawberry", art:{t:"drink",c:"#f9a8d4"}}
+ ]}
+];
+
+/* =====================================================================
+   3) DRAWINGS (SVG)
+   ===================================================================== */
+const BUNS = {classic:{c:"#e8963a",d:"#c47427",s:"#fff1cf"}, black:{c:"#25252c",d:"#141418",s:"#f1f1f1"}, brioche:{c:"#f3b445",d:"#d48f23",s:"#fff6dc"}};
+const SEEDS = [[62,30],[78,20],[96,15],[116,16],[134,22],[150,32],[70,40],[88,32],[106,28],[124,33],[142,41],[56,46],[98,42],[118,45],[82,48],[136,50]];
+function topBun(y,b){
+  return `<path d="M24 ${y+52} C22 ${y-10} 178 ${y-10} 176 ${y+52} Q176 ${y+56} 170 ${y+56} H30 Q24 ${y+56} 24 ${y+52}Z" fill="${b.c}"/>
+  <path d="M40 ${y+28} C50 ${y+10} 80 ${y+4} 100 ${y+5}" stroke="rgba(255,255,255,.25)" stroke-width="6" fill="none" stroke-linecap="round"/>
+  ${SEEDS.map(([x,s])=>`<ellipse cx="${x}" cy="${y+s}" rx="3.4" ry="1.7" fill="${b.s}" transform="rotate(${(x*7)%50-25} ${x} ${y+s})"/>`).join("")}`;
+}
+function bottomBun(y,b){return `<rect x="28" y="${y}" width="144" height="22" rx="9" fill="${b.c}"/><rect x="28" y="${y+12}" width="144" height="10" rx="5" fill="${b.d}"/>`}
+const wave=(y,amp,col,x0=20,x1=180,st=10)=>{let d=`M${x0} ${y+4}`;for(let x=x0,i=0;x<x1;x+=st,i++)d+=` Q${x+st/2} ${y+(i%2?amp+4:-amp+4)} ${x+st} ${y+4}`;return `<path d="${d} L${x1} ${y+9} L${x0} ${y+9}Z" fill="${col}"/>`};
+const drips=(y,c)=>`<rect x="24" y="${y}" width="152" height="6" rx="2" fill="${c}"/>`+[[38,12],[70,8],[112,13],[150,9]].map(([x,h])=>`<path d="M${x} ${y+5} h14 l-7 ${h}z" fill="${c}"/>`).join("");
+const LAYER = {
+  beef:[18,y=>`<rect x="22" y="${y}" width="156" height="18" rx="9" fill="#6a3417"/><path d="M36 ${y+6}h18M68 ${y+11}h24M108 ${y+6}h16M138 ${y+12}h20" stroke="#40190a" stroke-width="3" stroke-linecap="round"/>`],
+  chicken:[20,y=>`<rect x="22" y="${y}" width="156" height="20" rx="10" fill="#d98a2b"/>${[34,52,70,90,110,128,146,164].map((x,i)=>`<circle cx="${x}" cy="${y+(i%2?4:15)}" r="4" fill="#efb45a"/>`).join("")}`],
+  mozz:[16,y=>`<rect x="26" y="${y}" width="148" height="16" rx="8" fill="#f39a2d"/>${[40,60,84,104,126,150].map((x,i)=>`<circle cx="${x}" cy="${y+(i%2?5:11)}" r="2.5" fill="#ffd27a"/>`).join("")}`],
+  cheddar:[8,y=>drips(y,"#ffc21a")],
+  swiss:[8,y=>drips(y,"#f6e3a1")],
+  lettuce:[10,y=>wave(y,4,"#5cc04a")],
+  rocca:[9,y=>wave(y,3,"#2e8b3a",24,176,8)],
+  tomato:[9,y=>[28,78,128].map(x=>`<rect x="${x}" y="${y}" width="46" height="9" rx="4" fill="#e5322d"/><rect x="${x+8}" y="${y+2}" width="30" height="4" rx="2" fill="#ff7366"/>`).join("")],
+  pickles:[7,y=>[44,80,116,152].map(x=>`<ellipse cx="${x}" cy="${y+3.5}" rx="17" ry="4" fill="#86b83f" stroke="#4f7a1d" stroke-width="1.5"/>`).join("")],
+  jalapeno:[10,y=>[38,62,86,110,134,158].map(x=>`<circle cx="${x}" cy="${y+5}" r="7" fill="#35a838" stroke="#22761f" stroke-width="2"/><circle cx="${x}" cy="${y+5}" r="2.6" fill="#d7f5b0"/>`).join("")],
+  mushroom:[10,y=>`<rect x="26" y="${y+2}" width="148" height="7" rx="3" fill="#7a4a2b"/>`+[40,66,92,118,144].map(x=>`<path d="M${x} ${y+6} q10 -10 20 0" stroke="#f1e6ff" stroke-width="2.5" fill="none"/>`).join("")],
+  rings:[12,y=>[48,100,152].map(x=>`<ellipse cx="${x}" cy="${y+6}" rx="22" ry="5.5" fill="none" stroke="#e9a43a" stroke-width="5"/>`).join("")],
+  takis:[9,y=>[30,44,58,72,86,100,114,128,142,156,168].map((x,i)=>`<rect x="${x}" y="${y+1}" width="11" height="7" rx="1.5" fill="${i%2?"#2f5fe0":"#5f86ff"}" transform="rotate(${i%2?14:-12} ${x+5} ${y+4})"/>`).join("")],
+  bacon:[8,y=>`<path d="M24 ${y+4} q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" stroke="#a7372a" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M24 ${y+4} q10 -6 20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0 t20 0" stroke="#f3a491" stroke-width="2" fill="none"/>`],
+  egg:[10,y=>`<ellipse cx="100" cy="${y+5}" rx="66" ry="7" fill="#fbfbf5"/><ellipse cx="108" cy="${y+3}" rx="13" ry="7" fill="#ffbf1a"/>`]
+};
+function burgerInner(layers,bunKey,anim){
+  const b=BUNS[bunKey]||BUNS.classic; let y=152; const parts=[`<ellipse cx="100" cy="${y+12}" rx="80" ry="6" fill="rgba(0,0,0,.25)"/>`];
+  y-=20; parts.push(`<g>${bottomBun(y,b)}</g>`);
+  layers.forEach((k,i)=>{const L=LAYER[k]; if(!L) return; y-=L[0]-2; parts.push(`<g class="ly${anim&&anim.has(i)?" drop":""}" style="transform-box:fill-box">${L[1](y)}</g>`)});
+  y-=54; parts.push(`<g class="ly${anim&&anim.has("top")?" drop":""}">${topBun(y,b)}</g>`);
+  return {svg:parts.join(""), top:y-6};
+}
+function burgerSVG(layers,bunKey,anim){
+  const r=burgerInner(layers,bunKey,anim); const top=Math.min(0,r.top);
+  return `<svg viewBox="0 ${top} 200 ${176-top}" aria-hidden="true">${r.svg}</svg>`;
+}
+const ART = {
+  fries:()=>`${[66,76,86,96,106,116,126].map((x,i)=>`<rect x="${x}" y="${32+(i*13)%22}" width="9" height="70" rx="2" fill="#ffd143" stroke="#d9a218" stroke-width="1.5" transform="rotate(${(i-3)*4} ${x} 100)"/>`).join("")}
+    <path d="M56 78 H144 L132 152 H68Z" fill="#e3342f"/><path d="M56 78 H144 L141 92 H59Z" fill="#c22722"/><circle cx="100" cy="120" r="13" fill="#ffcc1a"/><path d="M100 120 L113 113 L113 127Z" fill="#e3342f"/>`,
+  drink:a=>`<rect x="96" y="14" width="7" height="40" rx="3" fill="#ff4f6d" transform="rotate(12 100 30)"/><path d="M66 46 H134 L124 156 H76Z" fill="${a.c}"/><rect x="62" y="40" width="76" height="12" rx="5" fill="#f2f2f2"/><path d="M74 80 H126 L123 112 H77Z" fill="rgba(255,255,255,.85)"/><circle cx="100" cy="96" r="9" fill="${a.c}"/>`,
+  wings:()=>[[60,96,-25],[100,80,0],[140,98,25]].map(([x,y,r])=>`<g transform="rotate(${r} ${x} ${y})"><rect x="${x-4}" y="${y+18}" width="8" height="26" rx="3" fill="#f6ecd6"/><circle cx="${x-5}" cy="${y+46}" r="5" fill="#f6ecd6"/><circle cx="${x+5}" cy="${y+46}" r="5" fill="#f6ecd6"/><ellipse cx="${x}" cy="${y}" rx="22" ry="28" fill="#b4461f"/><ellipse cx="${x-6}" cy="${y-8}" rx="6" ry="10" fill="#d9692f"/></g>`).join(""),
+  rings:()=>[[100,60],[78,98],[124,104],[100,138]].map(([x,y])=>`<ellipse cx="${x}" cy="${y}" rx="30" ry="15" fill="none" stroke="#e9a43a" stroke-width="12"/><ellipse cx="${x}" cy="${y}" rx="30" ry="15" fill="none" stroke="#ffcf6b" stroke-width="3" stroke-dasharray="4 7"/>`).join(""),
+  sticks:()=>[[52,-20],[82,-8],[112,6],[142,18]].map(([x,r])=>`<g transform="rotate(${r} ${x} 90)"><rect x="${x-11}" y="40" width="22" height="96" rx="9" fill="#e09a33"/><rect x="${x-7}" y="132" width="14" height="14" rx="6" fill="#fff6d2"/>${[60,84,108].map(y=>`<circle cx="${x-3}" cy="${y}" r="2.5" fill="#f6c46a"/>`).join("")}</g>`).join(""),
+  sauce:a=>`<ellipse cx="100" cy="132" rx="50" ry="12" fill="rgba(0,0,0,.25)"/><path d="M52 82 H148 L138 130 Q100 142 62 130Z" fill="#f2f2f2"/><ellipse cx="100" cy="82" rx="48" ry="13" fill="#ddd"/><ellipse cx="100" cy="83" rx="42" ry="10" fill="${a.c}"/><ellipse cx="88" cy="80" rx="12" ry="3" fill="rgba(255,255,255,.4)"/>`,
+  box:()=>`<g stroke="#ffcc1a" stroke-width="3" stroke-linejoin="round"><path d="M100 20 L158 46 L100 72 L42 46Z" fill="#1d2430"/><path d="M42 46 L100 72 V150 L42 124Z" fill="#141a22"/><path d="M158 46 L100 72 V150 L158 124Z" fill="#0f141b"/></g>
+    <path d="M100 72 V150 M42 46 L100 72 L158 46" stroke="#22e3ff" stroke-width="1.5" fill="none" opacity=".8"/>
+    <text x="71" y="128" font-family="Bangers,sans-serif" font-size="58" fill="#22e3ff" text-anchor="middle">?</text>
+    <text x="129" y="128" font-family="Bangers,sans-serif" font-size="58" fill="#22e3ff" text-anchor="middle" opacity=".6">?</text>`,
+  combo:()=>`<g transform="translate(-8 22) scale(.68)">${burgerInner(["beef","cheddar","tomato","lettuce"],"classic").svg}</g><g transform="translate(92 20) scale(.62)">${ART.fries()}</g><g transform="translate(118 58) scale(.48)">${ART.drink({c:"#1f4fd8"})}</g>`
+};
+function art(a){ return a.t==="burger" ? burgerSVG(a.layers,a.bun) : `<svg viewBox="0 0 200 170" aria-hidden="true">${ART[a.t](a)}</svg>`; }
+
+/* =====================================================================
+   4) APP
+   ===================================================================== */
+const $=s=>document.querySelector(s);
+const fmt=n=>CONFIG.currency+n.toFixed(2);
+const ITEMS={}; MENU.forEach(c=>c.items.forEach(i=>ITEMS[i.id]=i));
+const TABLE=new URLSearchParams(location.search).get("table")||"";
+const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+
+let cart=store.get("emenu-cart",[]).filter(l=>ITEMS[l.itemId]);
+let score=store.get("emenu-score",0);
+let muted=store.get("emenu-muted",false);
+
+/* header + footer */
+$("#logo").innerHTML=`<span>${CONFIG.logoTop}</span><span style="color:#ffcc1a;-webkit-text-stroke:1px #111">${CONFIG.logoBottom}</span>`;
+$("#tagline").textContent=CONFIG.tagline;
+document.title=CONFIG.name+" Menu";
+$("#footer").innerHTML=`<a href="https://instagram.com/${CONFIG.instagram}" target="_blank" rel="noopener">@${CONFIG.instagram}</a>
+  <a href="tel:${CONFIG.phone.replace(/\s/g,"")}">${CONFIG.phone}</a><a href="${CONFIG.mapsUrl}" target="_blank" rel="noopener">FIND US</a><small>© ${new Date().getFullYear()} ${CONFIG.name.toUpperCase()}</small>`;
+
+/* menu */
+function qtyOf(key){const l=cart.find(l=>l.key===key);return l?l.qty:0}
+function ctlHTML(it){
+  if(it.type!=="simple") return `${it.type==="options"?'<span class="opt-l">CHOOSE OPTIONS</span>':""}<button class="plus" data-act="open" aria-label="Add ${it.name}">+</button>`;
+  const q=qtyOf(it.id);
+  return q?`<div class="stepper"><button data-act="dec" aria-label="Remove one">−</button><span>${q}</span><button data-act="inc" aria-label="Add one">+</button></div>`
+          :`<button class="plus" data-act="inc" aria-label="Add ${it.name}">+</button>`;
+}
+function cardHTML(it){
+  return `<article class="card${it.type!=="simple"?" conf":""}" data-id="${it.id}">
+    <div class="art">${art(it.art)}</div>
+    <div class="body"><h3>${it.name}</h3>${it.tag?`<span class="tag${it.isNew?" new":""}">${it.tag}</span>`:""}<p>${it.desc}</p>
+    <div class="row"><span class="price">${it.priceLabel||fmt(it.price)}</span><div class="ctl" id="ctl-${it.id}">${ctlHTML(it)}</div></div></div></article>`;
+}
+function renderMenu(){
+  $("#tabs").innerHTML=MENU.map((c,i)=>`<button class="tab${i?"":" on"}" data-cat="${c.id}">${c.name}</button>`).join("");
+  $("#menu").innerHTML=MENU.map((c,i)=>`<section class="cat" id="cat-${c.id}"><div class="cat-h"><span class="lvl">LEVEL ${String(i+1).padStart(2,"0")}</span><h2>${c.name.toUpperCase()}</h2><span class="cnt">×${c.items.length}</span></div><div class="cat-grid">${c.items.map(cardHTML).join("")}</div></section>`).join("");
+}
+function refreshCtl(id){const el=document.getElementById("ctl-"+id); if(el) el.innerHTML=ctlHTML(ITEMS[id]);}
+
+$("#menu").addEventListener("click",e=>{
+  const card=e.target.closest(".card"); if(!card) return;
+  const it=ITEMS[card.dataset.id]; const btn=e.target.closest("[data-act]"); const act=btn&&btn.dataset.act;
+  if(act==="inc") addLine({key:it.id,itemId:it.id,name:it.name,unit:it.price,details:[]},1);
+  else if(act==="dec") changeQty(it.id,-1);
+  else if(it.type!=="simple") openItem(it);
+});
+
+/* tabs */
+$("#tabs").addEventListener("click",e=>{
+  const t=e.target.closest(".tab"); if(!t) return;
+  const sec=document.getElementById("cat-"+t.dataset.cat);
+  window.scrollTo({top:sec.getBoundingClientRect().top+scrollY-$(".tabs").offsetHeight-4,behavior:"smooth"});
+});
+function setTab(id){document.querySelectorAll(".tab").forEach(t=>{const on=t.dataset.cat===id;t.classList.toggle("on",on);if(on)t.scrollIntoView({inline:"center",block:"nearest",behavior:"smooth"})})}
+function spy(){
+  const off=$(".tabs").offsetHeight+30; let cur=MENU[0].id;
+  MENU.forEach(c=>{if(document.getElementById("cat-"+c.id).getBoundingClientRect().top<=off) cur=c.id});
+  if(innerHeight+scrollY>=document.body.scrollHeight-4) cur=MENU[MENU.length-1].id;
+  if(cur!==spy.cur){spy.cur=cur;setTab(cur)}
+}
+addEventListener("scroll",()=>requestAnimationFrame(spy),{passive:true});
+
+/* cart */
+function save(){store.set("emenu-cart",cart);store.set("emenu-score",score)}
+function count(){return cart.reduce((s,l)=>s+l.qty,0)}
+function total(){return cart.reduce((s,l)=>s+l.qty*l.unit,0)}
+function addLine(line,qty){
+  const ex=cart.find(l=>l.key===line.key);
+  if(ex) ex.qty+=qty; else cart.push({...line,qty});
+  onAdded(qty,line.itemId); afterChange(line.itemId);
+}
+function changeQty(key,d){
+  const l=cart.find(l=>l.key===key); if(!l) return;
+  l.qty+=d; if(l.qty<=0) cart=cart.filter(x=>x!==l);
+  if(d>0) onAdded(d);
+  afterChange(l.itemId);
+}
+function afterChange(itemId){save();refreshCtl(itemId);updateBar();renderCart()}
+function updateBar(){
+  const n=count();
+  $("#obInfo").textContent=`×${n} · ${fmt(total())}`;
+  $("#orderbar").classList.toggle("show",n>0);
+  $("#mult").textContent="×"+n;
+  $("#score").textContent=String(score).padStart(6,"0");
+}
+function onAdded(qty,itemId){
+  score+=100*qty; eat(qty); deliver(itemId);
+}
+function toast(msg){const t=$("#toast");t.textContent=msg;t.classList.add("show");clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.remove("show"),1400)}
+
+/* arcade */
+const DOTS=20; let pacPos=0; const dots=[];
+(function buildLane(){
+  const lane=$("#lane");
+  for(let i=0;i<DOTS;i++){const d=document.createElement("span");d.className="dot"+(i%7===6?" big":"");d.style.left=((i+.5)/DOTS*100)+"%";lane.appendChild(d);dots.push(d)}
+  $("#pac").style.left="0%";
+})();
+function eat(n){
+  $("#ready").classList.add("hide");
+  const from=pacPos, to=Math.min(pacPos+n*3,DOTS), step=110, pac=$("#pac");
+  for(let i=from;i<to;i++) setTimeout(()=>dots[i].classList.add("eaten"),(i-from+.6)*step);
+  pac.style.transition=`left ${(to-from)*step}ms linear`;
+  pac.style.left=(to/DOTS*100)+"%";
+  $("#ghost").style.left=Math.max(-8,(to-6)/DOTS*100)+"%";
+  pacPos=to;
+  if(to>=DOTS) setTimeout(()=>{
+    pac.style.transition="none"; pac.style.left="0%"; $("#ghost").style.left="-60px"; pacPos=0;
+    dots.forEach(d=>d.classList.remove("eaten"));
+    const r=$("#ready"); r.textContent="LEVEL UP!"; r.classList.remove("hide"); setTimeout(()=>r.classList.add("hide"),1100);
+  },(to-from)*step+250);
+}
+let actx;
+function waka(){
+  if(muted) return;
+  try{
+    actx=actx||new (window.AudioContext||window.webkitAudioContext)(); const t=actx.currentTime;
+    for(let k=0;k<2;k++){const o=actx.createOscillator(),g=actx.createGain(),s=t+k*.13;
+      o.type="triangle"; o.frequency.setValueAtTime(k?260:480,s); o.frequency.linearRampToValueAtTime(k?480:240,s+.11);
+      g.gain.setValueAtTime(.13,s); g.gain.linearRampToValueAtTime(0,s+.12); o.connect(g).connect(actx.destination); o.start(s); o.stop(s+.13)}
+  }catch(e){}
+}
+function drawMute(){$("#mute").innerHTML=`<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5 6 9H2v6h4l5 4z" fill="#fff"/>${muted?'<path d="m23 9-6 6M17 9l6 6"/>':'<path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14"/>'}</svg>`}
+$("#mute").onclick=()=>{muted=!muted;store.set("emenu-muted",muted);drawMute()};
+
+/* item sheet */
+let M=null;
+function openOverlay(id){$(id).classList.add("open");document.body.style.overflow="hidden"}
+function closeOverlay(id){$(id).classList.remove("open");if(!document.querySelector(".overlay.open"))document.body.style.overflow=""}
+document.querySelectorAll(".overlay").forEach(o=>o.addEventListener("click",e=>{if(e.target===o)closeOverlay("#"+o.id)}));
+addEventListener("keydown",e=>{if(e.key==="Escape")document.querySelectorAll(".overlay.open").forEach(o=>closeOverlay("#"+o.id))});
+
+function openItem(it){
+  M={it,qty:1,sel:{},strikes:new Set(),prevLayers:null};
+  (it.groups||[]).forEach(g=>M.sel[g.id]=[]);
+  const box=$("#itemBox");
+  let body="";
+  box.classList.toggle("wide",it.type==="builder");
+  if(it.type!=="builder") body+=`<div class="info"><div class="mini">${art(it.art)}</div><div>${it.tag?`<p class="motto">${it.tag}</p>`:""}<p class="desc" style="margin:0">${it.desc}</p></div></div>`;
+  if(it.type==="mystery"){
+    body+=`<div class="grp"><div class="grp-h"><b>NOT ON MY BURGER</b><span class="right" id="strk"></span></div>
+      <p class="desc" style="margin:-4px 0 12px">Strike up to ${it.maxStrikes} things you don't want. We pick around them.</p>
+      <div class="chips">${it.strikes.map((s,i)=>`<button class="chip" data-s="${i}">${s}</button>`).join("")}</div></div>`;
+  } else {
+    body+=(it.groups||[]).map(g=>`<div class="grp"><div class="grp-h"><b>${g.label}</b><small>${g.max===1?"Pick one":g.max?`Pick up to ${g.max}`:"Pick any"}${g.min?' — <span class="req">required</span>':""}</small></div>
+      <div class="chips">${g.choices.map((c,i)=>`<button class="chip" data-g="${g.id}" data-i="${i}">${c.name}${c.price?` <em>${g.abs?"":"+"}${fmt(c.price)}</em>`:""}</button>`).join("")}</div></div>`).join("");
+  }
+  if(it.type==="builder") body=`<div class="preview" id="preview"></div><div class="opts">${body}</div>`;
+  box.innerHTML=`<div class="sh-h"><h2>${it.name}<span class="sub" id="shPrice"></span></h2><button class="x" data-close aria-label="Close">✕</button></div>
+    <div class="sh-b">${body}</div>
+    <div class="sh-f"><div class="stepper"><button data-q="-1" aria-label="Less">−</button><span id="shQty">1</span><button data-q="1" aria-label="More">+</button></div><button class="btn" id="shAdd"></button></div>`;
+  refreshItem(); openOverlay("#itemSheet"); box.querySelector(".sh-b").scrollTop=0;
+}
+function unitPrice(){
+  let p=M.it.price;
+  (M.it.groups||[]).forEach(g=>M.sel[g.id].forEach(i=>p+=g.choices[i].price||0));
+  return p;
+}
+function firstMissing(){return (M.it.groups||[]).find(g=>(g.min||0)>M.sel[g.id].length)}
+function refreshItem(){
+  const it=M.it, box=$("#itemBox");
+  box.querySelectorAll("[data-g]").forEach(b=>b.classList.toggle("on",M.sel[b.dataset.g].includes(+b.dataset.i)));
+  if(it.type==="mystery"){
+    const full=M.strikes.size>=it.maxStrikes;
+    box.querySelectorAll("[data-s]").forEach(b=>{const on=M.strikes.has(+b.dataset.s);b.classList.toggle("struck",on);b.classList.toggle("full",full&&!on)});
+    $("#strk").textContent=`STRIKES ${M.strikes.size}/${it.maxStrikes}`;
+  }
+  if(it.type==="builder") drawPreview();
+  const miss=firstMissing(), up=unitPrice(), btn=$("#shAdd");
+  $("#shQty").textContent=M.qty;
+  $("#shPrice").textContent=fmt(up);
+  btn.disabled=!!miss;
+  btn.textContent=miss?`Choose a ${miss.label.toLowerCase()} first`:(it.type==="mystery"?`LOCK IT IN ${fmt(up*M.qty)}`:`ADD TO ORDER ${fmt(up*M.qty)}`);
+}
+function drawPreview(){
+  const g=M.it.groups, pick=id=>(M.sel[id]||[]).map(i=>g.find(x=>x.id===id).choices[i]);
+  const bun=(pick("bun")[0]||{}).bun||"classic";
+  const layers=[...pick("patty"),...pick("cheese"),...pick("extras"),...pick("toppings")].flatMap(c=>c.layers||[]);
+  const prev=M.prevLayers||[], anim=new Set();
+  layers.forEach((k,i)=>{if(prev[i]!==k)anim.add(i)});
+  if(M.prevBun&&M.prevBun!==bun) anim.add("top");
+  M.prevLayers=layers; M.prevBun=bun;
+  $("#preview").innerHTML=burgerSVG(layers,bun,anim);
+}
+$("#itemBox").addEventListener("click",e=>{
+  if(e.target.closest("[data-close]")) return closeOverlay("#itemSheet");
+  const q=e.target.closest("[data-q]"); if(q){M.qty=Math.max(1,M.qty+ +q.dataset.q);return refreshItem()}
+  const c=e.target.closest("[data-g]");
+  if(c){
+    const g=M.it.groups.find(x=>x.id===c.dataset.g), i=+c.dataset.i, s=M.sel[g.id];
+    if(g.max===1) M.sel[g.id]=(s[0]===i&&!g.min)?[]:[i];
+    else if(s.includes(i)) M.sel[g.id]=s.filter(x=>x!==i);
+    else if(!g.max||s.length<g.max) s.push(i);
+    else toast(`MAX ${g.max} ${g.label}`);
+    return refreshItem();
+  }
+  const st=e.target.closest("[data-s]");
+  if(st){const i=+st.dataset.s; if(M.strikes.has(i))M.strikes.delete(i); else if(M.strikes.size<M.it.maxStrikes)M.strikes.add(i); else toast("MAX "+M.it.maxStrikes+" STRIKES"); return refreshItem()}
+  if(e.target.closest("#shAdd")&&!firstMissing()){
+    const it=M.it; let details;
+    if(it.type==="mystery") details=M.strikes.size?["No: "+[...M.strikes].sort((a,b)=>a-b).map(i=>it.strikes[i]).join(", ")]:["Surprise me — no restrictions"];
+    else details=it.groups.filter(g=>M.sel[g.id].length).map(g=>`${g.label[0]+g.label.slice(1).toLowerCase()}: ${M.sel[g.id].map(i=>g.choices[i].name).join(", ")}`);
+    addLine({key:it.id+"|"+details.join(";"),itemId:it.id,name:it.name,unit:unitPrice(),details},M.qty);
+    closeOverlay("#itemSheet");
+  }
+});
+
+/* cart — same markup is used for the mobile sheet and the desktop sidebar */
+const form=store.get("emenu-form",{name:"",table:TABLE,notes:""});
+if(TABLE) form.table=TABLE;
+const isDesktop=()=>$("#side").offsetParent!==null;
+function cartHTML(side){
+  const lines=cart.length?cart.map(l=>`<div class="line"><div><h4>${l.name}</h4>${l.details.length?`<ul>${l.details.map(d=>`<li>• ${d}</li>`).join("")}</ul>`:""}</div>
+      <div class="lp">${fmt(l.unit*l.qty)}</div>
+      <div class="stepper"><button data-ck="${encodeURIComponent(l.key)}" data-d="-1" aria-label="Less">−</button><span>${l.qty}</span><button data-ck="${encodeURIComponent(l.key)}" data-d="1" aria-label="More">+</button></div></div>`).join("")
+    :`<div class="empty"><div class="pac-idle"></div>INSERT COIN<br>YOUR ORDER IS EMPTY</div>`;
+  return `<div class="sh-h"><h2>MY ORDER<span class="sub">×${count()} ITEMS</span></h2>${side?"":'<button class="x" data-close aria-label="Close">✕</button>'}</div>
+    <div class="sh-b">${lines}
+      ${cart.length?`<div class="total"><span>TOTAL</span><span>${fmt(total())}</span></div>
+      <label class="field"><span>TABLE NUMBER</span><input data-f="table" inputmode="numeric" value="${form.table||""}" placeholder="e.g. 5"></label>
+      <label class="field"><span>YOUR NAME</span><input data-f="name" value="${form.name||""}" placeholder="Optional"></label>
+      <label class="field"><span>NOTES</span><textarea data-f="notes" rows="2" placeholder="Allergies, no ice, extra napkins...">${form.notes||""}</textarea></label>
+      <button class="clear" data-clear>✕ CLEAR ORDER</button>`:""}
+    </div>
+    <div class="sh-f">${cart.length?`<button class="btn" data-send>➤ SEND ON WHATSAPP</button>`:(side?"":`<button class="btn" data-close>BACK TO MENU</button>`)}</div>`;
+}
+function renderCart(){
+  $("#side").innerHTML=cartHTML(true);
+  if($("#cartSheet").classList.contains("open")) $("#cartBox").innerHTML=cartHTML(false);
+}
+$("#openCart").onclick=()=>{$("#cartBox").innerHTML=cartHTML(false);openOverlay("#cartSheet")};
+["#cartBox","#side"].forEach(sel=>{
+  const box=$(sel);
+  box.addEventListener("input",e=>{const f=e.target.dataset.f; if(f){form[f]=e.target.value;store.set("emenu-form",form)}});
+  box.addEventListener("click",e=>{
+    if(e.target.closest("[data-close]")) return closeOverlay("#cartSheet");
+    const s=e.target.closest("[data-ck]"); if(s) return changeQty(decodeURIComponent(s.dataset.ck),+s.dataset.d);
+    if(e.target.closest("[data-clear]")){ if(confirm("Clear your whole order?")){const ids=cart.map(l=>l.itemId);cart=[];ids.forEach(refreshCtl);save();updateBar();renderCart()} return }
+    if(e.target.closest("[data-send]")){
+      if(!form.table){toast("ENTER YOUR TABLE NUMBER");box.querySelector('[data-f="table"]').focus();return}
+      const L=["*NEW ORDER — "+CONFIG.name.toUpperCase()+"*","Table: "+form.table];
+      if(form.name) L.push("Name: "+form.name);
+      L.push("------------------------");
+      cart.forEach(l=>{L.push(`${l.qty}× ${l.name} — ${fmt(l.unit*l.qty)}`);l.details.forEach(d=>L.push("   • "+d))});
+      L.push("------------------------","*TOTAL: "+fmt(total())+"*");
+      if(form.notes) L.push("Notes: "+form.notes);
+      window.open(`https://wa.me/${CONFIG.whatsapp}?text=${encodeURIComponent(L.join("\n"))}`,"_blank");
+    }
+  });
+});
+
+/* Pac-Man delivery: flies to the item, eats it, carries it to the cart */
+const REDUCED=matchMedia("(prefers-reduced-motion: reduce)").matches;
+function cartTarget(){
+  if(isDesktop()){const r=$("#side .sh-h h2").getBoundingClientRect();return {el:$("#side"),x:r.left+30,y:r.top+22}}
+  const r=$("#openCart").getBoundingClientRect();return {el:$("#orderbar"),x:r.left+r.width/2,y:r.top+r.height/2};
+}
+function bumpCart(el){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump")}
+function blip(){
+  if(muted) return;
+  try{actx=actx||new (window.AudioContext||window.webkitAudioContext)();const t=actx.currentTime,o=actx.createOscillator(),g=actx.createGain();
+    o.type="square";o.frequency.setValueAtTime(520,t);o.frequency.setValueAtTime(780,t+.07);o.frequency.setValueAtTime(1040,t+.14);
+    g.gain.setValueAtTime(.06,t);g.gain.linearRampToValueAtTime(0,t+.24);o.connect(g).connect(actx.destination);o.start(t);o.stop(t+.25)}catch(e){}
+}
+const move=(el,a,b,ms,ease)=>el.animate([{transform:`translate(${a.x}px,${a.y}px)`},{transform:`translate(${b.x}px,${b.y}px)`}],{duration:ms,easing:ease||"linear",fill:"forwards"}).finished;
+const face=(body,a,b)=>{body.style.transform=`rotate(${Math.atan2(b.y-a.y,b.x-a.x)}rad)`};
+async function deliver(itemId){
+  const src=itemId&&document.querySelector(`.card[data-id="${itemId}"] .art`);
+  const r=src&&src.getBoundingClientRect();
+  if(REDUCED||!r||r.bottom<0||r.top>innerHeight){waka();bumpCart(cartTarget().el);return}
+  const S=64, h=S/2;
+  // copy of the item picture, laid over the card
+  const food=document.createElement("div");food.className="fly-food";food.innerHTML=src.innerHTML;
+  Object.assign(food.style,{left:r.left+"px",top:r.top+"px",width:r.width+"px",height:r.height+"px"});
+  // Pac-Man (wrapper moves, body rotates, carried item stays upright)
+  const pac=document.createElement("div");pac.className="fly-pac";
+  pac.innerHTML=`<div class="carry">${src.innerHTML}</div><div class="pbody"><div class="pman"></div></div>`;
+  document.body.append(food,pac);
+  const body=pac.querySelector(".pbody"), carry=pac.querySelector(".carry");
+  const cy=r.top+r.height/2-h;
+  const fromLeft=r.left+r.width/2>innerWidth/2?false:true;          // enter from the nearest screen edge
+  const start={x:fromLeft?-S:innerWidth, y:cy};
+  const near ={x:fromLeft?r.left-h:r.right-h, y:cy};
+  const far  ={x:fromLeft?r.right-h:r.left-h, y:cy};
+  // 1) run to the item
+  face(body,start,near);
+  await move(pac,start,near,Math.min(520,Math.max(220,Math.abs(near.x-start.x)*1.1)),"ease-out");
+  // 2) eat it: Pac-Man crosses the picture while it disappears behind him
+  const eatMs=420; waka();
+  food.animate([{clipPath:"inset(0 0 0 0)"},{clipPath:fromLeft?"inset(0 0 0 100%)":"inset(0 100% 0 0)"}],{duration:eatMs,fill:"forwards"});
+  await move(pac,near,far,eatMs);
+  food.remove(); carry.classList.add("on");
+  // 3) carry it to the cart
+  await new Promise(res=>setTimeout(res,120));
+  const t=cartTarget(), end={x:t.x-h,y:t.y-h};
+  face(body,far,end);
+  const d=Math.hypot(end.x-far.x,end.y-far.y);
+  await move(pac,far,end,Math.min(950,Math.max(420,d*1.3)),"cubic-bezier(.5,0,.3,1)");
+  // 4) drop it in
+  carry.classList.remove("on"); blip(); bumpCart(t.el);
+  await pac.animate([{transform:`translate(${end.x}px,${end.y}px) scale(1)`,opacity:1},{transform:`translate(${end.x}px,${end.y}px) scale(.2)`,opacity:0}],{duration:220,fill:"forwards"}).finished;
+  pac.remove();
+}
+
+/* boot */
+renderMenu(); drawMute(); updateBar(); renderCart(); spy();
+</script>
+</body>
+</html>
